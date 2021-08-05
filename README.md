@@ -1,4 +1,4 @@
-## AutomatedBusinessCheckWriter
+# AutomatedBusinessCheckWriter
 
-# text
+## text
 
