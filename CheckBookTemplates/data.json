@@ -1,1 +1,0 @@
-{"Check": [{"invoice_num": "1234", "invoice_date": "8/1/2021", "check_num": "56789", "check_date": "8/6/2021", "account_code": "101.005", "amount": 10000.0, "payee": "Micheal Scott"}, {"invoice_num": "4925", "invoice_date": "8/5/2021", "check_num": "61621234", "check_date": "8/7/2021", "account_code": "101.005", "amount": 50555.0, "payee": "Jim Halpert"}]}
