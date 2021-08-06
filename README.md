@@ -10,11 +10,17 @@ python-docx
 python-num2words
 
 python-docx2pdf
+
 python-json
+
 python-csv
+
 python-os
+
 xml.etree.ElementTree
 
 Tkinter 
+
 SQLite3 
+
 MySQL
