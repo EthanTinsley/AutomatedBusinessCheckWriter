@@ -18,10 +18,10 @@ outputting a business check that is formatted to meet MICR E-13B banking specifi
     SQLite3 
     MySQL
     
-# Database Support 
+## Database Support 
 A DatabaseHelper class is offered for both MySQL and SQLite3 depending on personel needs
 
-# Check Object 
+## Check Object 
 To read checks into system a Check object must be created which utilizes the parameters check date, check number, invoice number, invoice date, payee, account & amount
 
 To format .csv file correctly columns should be arragned as follows(check date, check number, invoice number, invoice date, payee, account, amount)     
