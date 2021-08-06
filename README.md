@@ -27,6 +27,6 @@ To format .csv file correctly columns should be arragned as follows(check date, 
 
 To format a .json file correctly Check JSON object should include following attribures: (check_date, check_num, invoice_num, invoice_date, payee, account_code , amount)
 
-To format a .xml file correctly include <check attribute></check> and embed following attributes within <check></check> tags (check_date, check_num, invoice_num, invoice_date, payee, account_code , amount) where each attribute listed like: <check_num name="check_num">123</check_num> -- because name=... identifies parameter in the code
+To format a .xml file correctly embed following attributes within "Check" tags (check_date, check_num, invoice_num, invoice_date, payee, account_code , amount) where each attribute listed like: <check_num name="check_num">123</check_num> -- because "name = " identifies parameter in the code
 
 
