@@ -1,0 +1,31 @@
+<data>
+	<checks>
+		<check>
+			<invoice_num name="invoice_num">4567</invoice_num>
+			<invoice_date name="invoice_date">8/2/2021</invoice_date>
+			<check_num name="check_num">98765</check_num>
+			<check_date name="check_date">8/4/2021"</check_date>
+			<account_code name="account">101.005</account_code>
+			<amount name="amount">20000.49</amount>
+			<payee name="payee">Jane Doe</payee>
+		</check>
+		<check>
+			<invoice_num name="invoice_num">124578</invoice_num>
+			<invoice_date name="invoice_date">8/3/2021</invoice_date>
+			<check_num name="check_num">198765</check_num>
+			<check_date name="check_date">8/3/2021</check_date>
+			<account_code name="account">101.005</account_code>
+			<amount name="amount">222.49</amount>
+			<payee name="payee">John Doe</payee>
+		</check>
+		<check>
+			<invoice_num name="invoice_num">459907</invoice_num>
+			<invoice_date name="invoice_date">8/1/2021</invoice_date>
+			<check_num name="check_num">9870065</check_num>
+			<check_date name="check_date">8/5/2021</check_date>
+			<account_code name="account">101.005</account_code>
+			<amount name="amount">100.49</amount>
+			<payee name="payee">Jason Bourne</payee>
+		</check>
+	</checks>
+</data>
