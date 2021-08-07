@@ -32,10 +32,10 @@ class DataBaseHelper:
     def get_connection(self):
 
         conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="ertins3014",
-            database="CheckWriter"
+            host="host",
+            user="user",
+            password="password",
+            database="db"
         )
 
         return conn
