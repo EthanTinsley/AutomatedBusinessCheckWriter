@@ -37,6 +37,14 @@ class CheckWriter:
         # establish db conenction 
         db = DataBaseHelper()
 
+        # determine if check list to print contains duplicates 
+        duplicatelist = self.duplicate_verification(checklist)
+
+        if duplicatelist != [] :
+            checklist = self.combine_multicharge_checks(checklist, duplicatelist)
+            print(len(checklist))
+            print(checklist)
+
         # iterate through checks in checklist
         for check in checklist:
             # create the current check document
@@ -44,7 +52,20 @@ class CheckWriter:
 
             # determine if check is a multiline check
             if isinstance(check, list):
-                pass
+                # get account information
+                account = db.get_account(check[0].account_code)
+                # get bank infromation
+                bank = db.get_bank(check[0].account_code)
+                # get company information
+                company = db.get_company(check[0].account_code)
+                # get signature
+                signature = db.get_signature(check[0].account_code)
+
+                # format the check accordingly
+                doc = self.format_multicharge_check(doc, check, company, bank, account, signature)
+
+                # name the check document accordingly
+                doc_name = check[0].check_num + '_' + check[0].payee
             
             else:
                 # get account information
@@ -55,8 +76,6 @@ class CheckWriter:
                 company = db.get_company(check.account_code)
                 # get signature
                 signature = db.get_signature(check.account_code)
-
-                self.signature = signature
 
                 # format the check accordingly
                 doc = self.format_check(doc, check, company, bank, account, signature)
@@ -280,12 +299,9 @@ class CheckWriter:
                             self.format_amount(para, amount)
                         elif "Invoice No." in para.text:
                             self.format_memo_table(check, table)
-                        elif "signature" in para.text:
-                            self.format_signature(para, signature.path)
+                       # elif "signature" in para.text:
+                           # self.format_signature(para, signature.path)
                         
-
-                            
-
         # return altered document 
         return doc 
 
@@ -673,41 +689,60 @@ class CheckWriter:
     # a method used to format a multi-charge check
     # accepts the same parameters as format_check() accept that 
     # instead of a check object we are accepting a list of check objects
-    def format_multicharge_check(self, doc, check_list, company, bank, account): 
+    def format_multicharge_check(self, check_template_doc, check_list, company, bank, account, signature): 
         # localize variables
-        doc = doc
-        checkslist = check_list
+        doc = check_template_doc 
         company = company
         bank = bank
         account = account
-        check_num = check_list[0].check_num
-        total = 0
+        checklist = check_list
+        signature = signature
+        amount = 0
+
+        for check in checklist:
+            amount += float(check.amount)
         
-        # iterate through the check list and add each checks memo to the memo-table
-        count = 1
-        for check in checkslist:
-            total += check.amount
-            doc = self.format_multiline_memo_table(doc, check, count, total)
-            count += 1
-
-        # # format the checks company information
-        doc = self.format_company(doc, company)
-
-        # format the checks checking information
-        checkslist[0].amount = total
-        doc = self.format_check_info(doc, checkslist[0])
-
-        # fromat the checks bank information 
-        doc = self.format_bank(doc, bank)
-
-        # format the checks account information
-        doc = self.format_account(doc, account, check_num)
-
+        # parse document for keywords to replace 
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    for para in cell.paragraphs:
+                        # condiitonal statements to locate keywords
+                        if "company_name" in para.text:
+                            self.format_company_name(para, company.name)
+                        elif "address" in para.text:
+                            self.format_company_address(para, company.address)
+                        elif "city, state zip" in para.text:
+                            self.format_company_address2(para, company.city, company.state, company.zip)
+                        elif "check_date" in para.text:
+                            self.format_check_date(para, checklist[0].check_date, 12)
+                        elif "date" in para.text:
+                            self.format_check_date(para, checklist[0].check_date, 8)
+                        elif "check_num" in para.text:
+                            self.format_check_num(para, checklist[0].check_num)
+                        elif "payee" in para.text:
+                            self.format_payee(para,checklist[0].payee)
+                        elif "amount_in_text" in para.text:
+                            self.format_amount_text(para, amount)
+                        elif "amount" in para.text:
+                            self.format_amount(para, amount)
+                        elif "Invoice No." in para.text:
+                            self.format_multiline_memo_table(checklist, table)
+                        elif "bank_name" in para.text:
+                            self.format_bank_name(para,bank.name)
+                        elif "signature" in para.text:
+                            self.format_signature(para, signature.path)
+                        elif "routing_num" in para.text:
+                            self.format_routing_num(para, account.routing_num)
+                        elif "MICR_checknum_BAND" in para.text:
+                            self.format_MICR_check_num(para, checklist[0].check_num)
+                        elif "MICR_accountnum_BAND" in para.text:
+                            self.format_MICR_account_num(para, account.account_num)
+                        elif "MICR_routingnum_BAND" in para.text:
+                            self.format_MICR_routing_num(para, account.routing_num)
 
         return doc
 
-
-    
     
     # method to format the checks memo table for a multi-line check
     # should take the information from the check object and insert it into the 
@@ -716,55 +751,89 @@ class CheckWriter:
     # the desired row is where the checks information will be inserted 
     # the total is the what will be tallied in the net column of the table
     # used in the format_check() method
-    def format_multiline_memo_table(self, check_template_doc, check, desired_row, total):
-        doc = check_template_doc
-        check = check
-        memo_row = desired_row
+    def format_multiline_memo_table(self, checklist, table):
+        memotable = table
+        total = 0
         count = 0
-        total = total
-        memotable = None
-
-
-        # parse through the document to find the table that houses the memo information
-        for table in doc.tables:
-            for row in table.rows:
-                for cell in row.cells:
-                    for para in cell.paragraphs:
-                        if "Invoice No." in para.text:
-                            memotable = table 
+        index = -1
                         
-
         # iterate through the memo table and add the check information to the memo 
         # add key information to the memo table depending on the column count 
         # of current row
-        row = memotable.rows[memo_row]
-        for cell in row.cells:
-            para = cell.paragraphs[0]
-
-            if count == 0: # cell for invoice number
-                run = para.add_run()
-                run.font.size = Pt(10)
-                run.add_text(str(check.invoice_num))
-            elif count == 1: # cell for invoice date 
-                run = para.add_run()
-                run.font.size = Pt(10)
-                run.add_text(str(check.invoice_date))
-            elif count == 2: # cell for reference 
-                para.text = ''
-            elif count == 3: # cell for account information
-                para.text = ''
-            elif count == 4: # cell for gross amount 
-                run = para.add_run()
-                run.font.size = Pt(10)
-                run.add_text(str(check.amount))
-            elif count == 5: # cell for discount 
-                para.text = ''
-            elif count == 6: # cell for total balance 
-                run = para.add_run()
-                run.font.size = Pt(10)
-                run.add_text(str(total))
+        for row in memotable.rows:
+            if index == -1:
+                index += 1
+                continue
+            elif index == len(checklist):
+                break
             
-            count += 1 # move to the next cell
+            total += checklist[index].amount
 
-        # end the method
-        return doc
+            for cell in row.cells:
+                para = cell.paragraphs[0]
+
+                if count == 0: # cell for invoice number
+                    run = para.add_run()
+                    run.font.size = Pt(10)
+                    run.add_text(str(checklist[index].invoice_num))
+                elif count == 1: # cell for invoice date 
+                    run = para.add_run()
+                    run.font.size = Pt(10)
+                    run.add_text(str(checklist[index].invoice_date))
+                elif count == 2: # cell for reference 
+                    para.text = ''
+                elif count == 3: # cell for account information
+                    para.text = ''
+                elif count == 4: # cell for gross amount 
+                    run = para.add_run()
+                    run.font.size = Pt(10)
+                    run.add_text(str(checklist[index].amount))
+                elif count == 5: # cell for discount 
+                    para.text = ''
+                elif count == 6: # cell for total balance 
+                    run = para.add_run()
+                    run.font.size = Pt(10)
+                    run.add_text(str(round(float(total), 2)))
+            
+                count += 1 # move to the next cell
+
+            count = 0
+            index += 1 # move to the next check
+
+
+        # end of the method
+                
+
+    # method for determing if list of checks contains check_num duplicates 
+    # a duplicate in check_num would illustrate that a multi-line charge check is present in the list 
+    # parse through checklist for print and determine if duplicates exist
+    # if duplicate found then combine to a duplicate list and return the list of duplicates
+    def duplicate_verification(self, checklist):
+        
+        dupchecknums = []
+        set_checknums = set()
+        for check in checklist:
+            if check.check_num in set_checknums:
+                dupchecknums.append(check.check_num)
+            else:
+                set_checknums.add(check.check_num)
+        
+        return dupchecknums
+
+    
+    # method accepts list of duplicate check numbers to determine whihc checks to combine 
+    # method accepts list of checks and combines the mutliline charge checks 
+    def combine_multicharge_checks(self, checklist, dupnumlist):
+        templist = checklist[:]
+
+        for duplicate in dupnumlist:
+            currlist = []
+            for check in checklist:
+                if check.check_num == duplicate:
+                    currlist.append(check)
+                    templist.remove(check)
+
+            templist.append(currlist)
+
+        # retubr modified check list
+        return templist
